@@ -40,6 +40,7 @@ log() {
 
 if [ "$(id -u)" -ne 0 ]; then
     log "Please run as root." "ERROR"
+    echo "This script must be run as root.  Please try again with sudo."
     exit 1
 fi
 
@@ -49,6 +50,7 @@ fi
 
 if ! grep -qE 'Ubuntu (22|[2-9][0-9])\.' /etc/os-release; then
     log "Gustave is only supported on Ubuntu 22 or greater." "ERROR"
+    echo "Gustave is only supported on Ubuntu 22 or greater.  Please try again with Ubuntu 22 or greater."
     exit 1
 fi
 
