@@ -47,10 +47,11 @@ fi
 #               Check if the script is running on Ubuntu 22.04                #
 ###############################################################################
 
-if ! grep -q 'Ubuntu 22.04' /etc/os-release; then
-    log "Gustave is only supported on Ubuntu 22.04." "ERROR"
+if ! grep -qE 'Ubuntu (22|[2-9][0-9])\.' /etc/os-release; then
+    log "Gustave is only supported on Ubuntu 22 or greater." "ERROR"
     exit 1
 fi
+
 
 ###############################################################################
 #Updating package index
