@@ -1,5 +1,8 @@
 #!/bin/bash
 ################################################################################
+#Setup
+removed_items="The following items have been removed from your system successfully:"
+
 #check if being run by sudo
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
@@ -14,6 +17,7 @@ sudo systemctl stop gustave.service
 if [ $? -eq 0 ]
 then
     echo "Gustave service stopped successfully."
+    removed_items+="\n - Gustave service: /etc/systemd/system/gustave.service"
 else
     echo "Gustave service failed to stop."
     exit 2
@@ -57,6 +61,7 @@ sudo rm /usr/local/bin/gustave
 if [ $? -eq 0 ]
 then
     echo "Gustave executable removed successfully."
+    removed_items+="\n - Gustave executable: /usr/local/bin/gustave"
 else
     echo "Gustave executable failed to remove."
     exit 6
@@ -102,6 +107,7 @@ then
         if [ $? -eq 0 ]
         then
             echo "Database removed successfully."
+            removed_items+="\n - MySQL database: $MYSQL_DATABASE_DB"
         else
             echo "Database failed to remove."
             exit 8
@@ -110,6 +116,7 @@ then
         if [ $? -eq 0 ]
         then
             echo "User removed successfully."
+            removed_items+="\n - MySQL user: $MYSQL_DATABASE_USER"
         else
             echo "User failed to remove."
             exit 9
@@ -125,6 +132,7 @@ sudo rm -r /etc/gustave
 if [ $? -eq 0 ]
 then
     echo "Gustave directory removed successfully."
+    removed_items+="\n - Gustave directory: /etc/gustave"
 else
     echo "Gustave directory failed to remove."
     exit 10
@@ -135,6 +143,7 @@ sudo deluser --system gustave
 if [ $? -eq 0 ]
 then
     echo "Gustave user removed successfully."
+    removed_items+="\n - Gustave user: gustave"
 else
     echo "Gustave user failed to remove."
     exit 11
@@ -148,6 +157,7 @@ then
     if [ $? -eq 0 ]
     then
         echo "python3-apt removed successfully."
+        removed_items+="\n - python3-apt"
     else
         echo "python3-apt failed to remove."
         exit 12
@@ -164,6 +174,7 @@ then
     if [ $? -eq 0 ]
     then
         echo "dialog removed successfully."
+        removed_items+="\n - dialog"
     else
         echo "dialog failed to remove."
         exit 13
@@ -180,6 +191,7 @@ then
     if [ $? -eq 0 ]
     then
         echo "jq removed successfully."
+        removed_items+="\n - jq"
     else
         echo "jq failed to remove."
         exit 14
@@ -190,3 +202,4 @@ fi
 ################################################################################
 #Finish!
 echo "Uninstallation complete!"
+echo -e $removed_items
