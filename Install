@@ -300,6 +300,7 @@ else
     # User chose to install Redis
     echo -n "Installer initializing..."
     # Try to install Redis
+    rm -f $progress_file
     sudo python3 ./.Redis.py > /dev/null 2>&1 &
     if [ $? -eq 0 ]; then
       log "Redis has been installed" "INFO"
