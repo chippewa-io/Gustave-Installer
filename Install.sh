@@ -192,7 +192,7 @@ else
     # User chose to install MySQL
     echo -n "Installer initializing..."
     # Try to install MySQL
-    sudo python3 ./.py > /dev/null 2>&1 &
+    sudo python3 ./.MySQL.py > /dev/null 2>&1 &
     if [ $? -eq 0 ]; then
       log "MySQL has been installed" "INFO"
     else
@@ -300,7 +300,7 @@ else
     # User chose to install Redis
     echo -n "Installer initializing..."
     # Try to install Redis
-    sudo python3 ./progress.py > /dev/null 2>&1 &
+    sudo python3 ./.Redis.py > /dev/null 2>&1 &
     if [ $? -eq 0 ]; then
       log "Redis has been installed" "INFO"
     else
@@ -355,7 +355,7 @@ else
     # User chose to install Celery
     echo -n "Installer initializing..."
     # Try to install Celery
-    sudo python3 ./progress_celery.py > /dev/null 2>&1 &
+    sudo python3 ./.Celery.py > /dev/null 2>&1 &
     if [ $? -eq 0 ]; then
       log "Celery has been installed" "INFO"
     else
