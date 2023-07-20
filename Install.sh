@@ -251,24 +251,35 @@ mysql_db=$(dialog --stdout --inputbox "MySQL Database:" 0 0)
 if [ "$install_mysql" != "0" ]; then
   log "Creating the database." "INFO"
   dialog --infobox "Creating the database..." 10 40
-  # Create the database
-  sudo mysql -u root -e "CREATE DATABASE $mysql_db;"
-  sudo mysql -u root -e "CREATE USER '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_password';"
-  sudo mysql -u root -e "GRANT ALL PRIVILEGES ON $mysql_db.* TO '$mysql_user'@'localhost';"
-  sudo mysql -u root -e "FLUSH PRIVILEGES;"
-  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE secret_table (udid VARCHAR(255) NOT NULL, secret VARCHAR(255) NOT NULL, computer_id INT NOT NULL, expiration INT NOT NULL, PRIMARY KEY (udid));"
-  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE active_profiles (profile_id INT NOT NULL, computer_id INT NOT NULL, PRIMARY KEY (profile_id));"
-  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE expired_profiles (profile_id INT NOT NULL, computer_id INT NOT NULL, PRIMARY KEY (profile_id));"
 
-  # Check if the database was created successfully
-  if [ $? -eq 0 ]; then
-    log "Database created successfully." "INFO"
-  else
-    log "Failed to create database." "ERROR"
-    dialog --title "Database Error" --msgbox "Failed to create database. Please check the log for more information." 10 40
-    clear
-    exit 1
-  fi
+  # Create the database
+  sudo mysql -u root -e "CREATE DATABASE $mysql_db;" || log "Failed to create database." "ERROR"
+
+  # Create the user
+  sudo mysql -u root -e "CREATE USER '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_password';" || log "Failed to create user." "ERROR"
+  sudo mysql -u root -e "GRANT ALL PRIVILEGES ON $mysql_db.* TO '$mysql_user'@'localhost';" || log "Failed to grant privileges." "ERROR"
+  sudo mysql -u root -e "FLUSH PRIVILEGES;" || log "Failed to flush privileges." "ERROR"
+
+  # Create the secret_table
+  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE secret_table (\
+  id INT NOT NULL AUTO_INCREMENT, \
+  udid VARCHAR(255) NOT NULL, \
+  secret VARCHAR(255) NOT NULL, \
+  computer_id INT NOT NULL, \
+  expiration INT NOT NULL, \
+  is_active TINYINT(1) DEFAULT 1, \
+  PRIMARY KEY (id));" || log "Failed to create secret_table." "ERROR"
+
+  # Create the active_profiles table
+  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE active_profiles (profile_id INT NOT NULL, computer_id INT NOT NULL, PRIMARY KEY (profile_id));" || log "Failed to create active_profiles table." "ERROR"
+
+  # Create the expired_profiles table
+  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE expired_profiles (\
+  profile_id INT NOT NULL, \
+  computer_id INT NOT NULL, \
+  PRIMARY KEY (profile_id));" || log "Failed to create expired_profiles table." "ERROR"
+
+  log "Database created successfully." "INFO"
 fi
 
 
