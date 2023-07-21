@@ -12,7 +12,7 @@ with open(progress_file, "a") as f:
     f.write("Installation has started. Percent: 0\n")
 
 # Using subprocess to install Celery
-result = subprocess.run(["pip3", "install", "celery[redis]"], capture_output=True, text=True)
+result = subprocess.run(["pip3", "install", "kombu", "redis", "celery"], capture_output=True, text=True)
 
 # Writing end of progress
 if result.returncode == 0:

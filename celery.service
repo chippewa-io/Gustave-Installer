@@ -1,0 +1,16 @@
+[Unit]
+Description=gustave Celery Worker
+After=network.target
+
+[Service]
+User=gustave
+Environment="FLASK_CONFIG=ProductionConfig"
+Environment="PYTHONPATH=${PYTHONPATH}:/usr/local/gustave"
+WorkingDirectory=/usr/local/bin/
+ExecStart=/usr/bin/celery -A celery_tasks.celery worker --loglevel=info
+Restart=always
+StandardOutput=append:/var/log/gustave_celery.log
+StandardError=append:/var/log/gustave_celery.log
+
+[Install]
+WantedBy=multi-user.target
