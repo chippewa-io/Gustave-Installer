@@ -1,40 +1,23 @@
 #!/bin/bash
+
 ##Insert License
+
 #//////////////////////////////////////////////////////////////////////////////
-#||||||||||||||||||||||||||     Setup          ||||||||||||||||||||||||||||||||
+#||||||||||||||||||||||||||    Setup          |||||||||||||||||||||||||||||||||
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
 ###############################################################################
 #                                  Variables                                  #
 ###############################################################################
+
 progress_file="/tmp/install_progress.txt"
+
 ###############################################################################
 #                                   Functions                                 #
 ###############################################################################
+
 check_mysql_installed() {
   if command -v mysql > /dev/null 2>&1; then
-    return 0
-  else
-    return 1
-  fi
-}
-check_pip3_installed() {
-  if command -v pip3 > /dev/null 2>&1; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-check_redis_installed() {
-  if command -v redis-server > /dev/null 2>&1; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-check_celery_installed() {
-  if pip3 show celery > /dev/null 2>&1; then
     return 0
   else
     return 1
@@ -51,19 +34,21 @@ log() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - $level - $message" >> install.log
     fi
 }
+
 ###############################################################################
 #                  Check if the script is running as root                     #
 ###############################################################################
+
 if [ "$(id -u)" -ne 0 ]; then
     log "Please run as root." "ERROR"
     echo "This script must be run as root.  Please try again with sudo."
     exit 1
 fi
 
-
 ###############################################################################
 #               Check if the script is running on Ubuntu 22.04                #
 ###############################################################################
+
 if ! grep -qE 'Ubuntu (22|[2-9][0-9])\.' /etc/os-release; then
     log "Gustave is only supported on Ubuntu 22 or greater." "ERROR"
     echo "Gustave is only supported on Ubuntu 22 or greater.  Please try again with Ubuntu 22 or greater."
@@ -74,6 +59,7 @@ fi
 ###############################################################################
 #Updating package index
 ###############################################################################
+
 echo -n "Updating package index..."
 sudo apt update &> /dev/null &
 pid=$! # Process Id of the previous running command
@@ -94,12 +80,13 @@ echo -e "\b done."
 #//////////////////////////////////////////////////////////////////////////////
 #|||||||||||||||||||       Install Dependencies          ||||||||||||||||||||||
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
 ###############################################################################
 #               Check if jq is installed and install it if not                #
 ###############################################################################
+
 if ! command -v jq >/dev/null 2>&1; then
     log "jq not installed.  Installing jq" "INFO"
-    echo -n "Installing dependencies..."
     # Try to install jq
     sudo apt install -y jq &> /dev/null &
     pid=$! # Process Id of the previous running command
@@ -118,13 +105,12 @@ if ! command -v jq >/dev/null 2>&1; then
     echo -e "\b done."
 fi
 
-
 ###############################################################################
 #               Check if dialog is installed and install it if not            #
 ###############################################################################
+
 if ! command -v dialog >/dev/null 2>&1; then
     log "dialog not installed.  Installing dialog" "INFO"
-    echo -ne "\r\e[K"
     echo -n "Installing dependencies..."
     # Try to install dialog
     sudo apt install -y dialog &> /dev/null &
@@ -144,13 +130,12 @@ if ! command -v dialog >/dev/null 2>&1; then
     echo -e "\b done."
 fi
 
-
 ###############################################################################
 #          Check if python3-apt is installed and install it if not            #
 ###############################################################################
+
 if ! command -v python3-apt >/dev/null 2>&1; then
     log "python3-apt not installed.  Installing python3-apt" "INFO"
-    echo -ne "\r\e[K"
     echo -n "Installing dependencies..."
     # Try to install python3-apt
     sudo apt install -y python3-apt &> /dev/null &
@@ -174,33 +159,35 @@ fi
 #//////////////////////////////////////////////////////////////////////////////
 #/////////////////////////           Begin          ///////////////////////////
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
 ###############################################################################
 #                                  Start Dialog                               #
 ###############################################################################
+
 log "starting Dialog now" "INFO"
 dialog --title "Welcome" --msgbox "Greetings, esteemed guest! Welcome to the illustrious Gustave installation process. Shall we begin?" 10 40
 
 
 #//////////////////////////////////////////////////////////////////////////////#
-#|||||||||||||||||||||||||       License        |||||||||||||||||||||||||||||||#
+#|||||||||||||||||||||||||       Activation        |||||||||||||||||||||||||||||#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+
 license=$(dialog --stdout --inputbox "Splendid! Now, could you please provide us with your Activation Code?" 10 60)
 
 
-#//////////////////////////////////////////////////////////////////////////////
-#||||||||||||||||||||||||||||    MySQL          ||||||||||||||||||||||||||||||
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+###############################################################################
 if check_mysql_installed; then
   log "MySQL is already installed." "INFO"
 else
   log "MySQL is not installed." "INFO"
   # Ask the user if they want to install MySQL
   if dialog --yesno "MySQL is not installed. Do you want to install it?" 10 40; then
+    # User chose to install MySQL
+    echo -n "Installer initializing..."
     # Try to install MySQL
-    sudo python3 ./.MySQL.py > /dev/null 2>&1 &
+    sudo python3 ./progress.py > /dev/null 2>&1 &
     if [ $? -eq 0 ]; then
       log "MySQL has been installed" "INFO"
-      mysql_installed=1
     else
       log "Failed to install MySQL" "ERROR"
     fi
@@ -247,156 +234,40 @@ else
 fi
 
 
+#//////////////////////////////////////////////////////////////////////////////
+#||||||||||||||||||||||||||||    MySQL          ||||||||||||||||||||||||||||||
+#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
 ###############################################################################
 # Prompt the user for MySQL Values
 ###############################################################################
-if [ "$install_mysql" != "0" ]; then
-  dialog --title "MySQL" --msgbox "MySQL is required for gustave to function properly. Please provide the following information." 10 40
-  mysql_host=$(dialog --stdout --inputbox "MySQL Host:" 0 0)
-fi
+mysql_host=$(dialog --stdout --inputbox "MySQL Host:" 0 0)
 mysql_user=$(dialog --stdout --inputbox "MySQL User:" 0 0)
 mysql_password=$(dialog --stdout --passwordbox "MySQL Password:" 0 0)
 mysql_db=$(dialog --stdout --inputbox "MySQL Database:" 0 0)
-
-
 ###############################################################################
 # Create the database                                                         #
 ###############################################################################
 if [ "$install_mysql" != "0" ]; then
   log "Creating the database." "INFO"
   dialog --infobox "Creating the database..." 10 40
-
   # Create the database
-  sudo mysql -u root -e "CREATE DATABASE $mysql_db;" || log "Failed to create database." "ERROR"
+  sudo mysql -u root -e "CREATE DATABASE $mysql_db;"
+  sudo mysql -u root -e "CREATE USER '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_password';"
+  sudo mysql -u root -e "GRANT ALL PRIVILEGES ON $mysql_db.* TO '$mysql_user'@'localhost';"
+  sudo mysql -u root -e "FLUSH PRIVILEGES;"
+  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE secret_table (udid VARCHAR(255) NOT NULL, secret VARCHAR(255) NOT NULL, computer_id INT NOT NULL, expiration INT NOT NULL, PRIMARY KEY (udid));"
+  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE active_profiles (profile_id INT NOT NULL, computer_id INT NOT NULL, PRIMARY KEY (profile_id));"
+  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE expired_profiles (profile_id INT NOT NULL, computer_id INT NOT NULL, PRIMARY KEY (profile_id));"
 
-  # Create the user
-  sudo mysql -u root -e "CREATE USER '$mysql_user'@'localhost' IDENTIFIED BY '$mysql_password';" || log "Failed to create user." "ERROR"
-  sudo mysql -u root -e "GRANT ALL PRIVILEGES ON $mysql_db.* TO '$mysql_user'@'localhost';" || log "Failed to grant privileges." "ERROR"
-  sudo mysql -u root -e "FLUSH PRIVILEGES;" || log "Failed to flush privileges." "ERROR"
-
-  # Create the secret_table
-  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE secret_table (\
-  id INT NOT NULL AUTO_INCREMENT, \
-  udid VARCHAR(255) NOT NULL, \
-  secret VARCHAR(255) NOT NULL, \
-  computer_id INT NOT NULL, \
-  expiration INT NOT NULL, \
-  is_active TINYINT(1) DEFAULT 1, \
-  PRIMARY KEY (id));" || log "Failed to create secret_table." "ERROR"
-
-  # Create the active_profiles table
-  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE active_profiles (profile_id INT NOT NULL, computer_id INT NOT NULL, PRIMARY KEY (profile_id));" || log "Failed to create active_profiles table." "ERROR"
-
-  # Create the expired_profiles table
-  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE expired_profiles (\
-  profile_id INT NOT NULL, \
-  computer_id INT NOT NULL, \
-  PRIMARY KEY (profile_id));" || log "Failed to create expired_profiles table." "ERROR"
-
-  log "Database created successfully." "INFO"
-fi
-
-
-#//////////////////////////////////////////////////////////////////////////////
-#||||||||||||||||||||||||||||    Redis          ||||||||||||||||||||||||||||||
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-if check_redis_installed; then
-  log "Redis is already installed." "INFO"
-else
-  log "Redis is not installed." "INFO"
-  # Ask the user if they want to install Redis
-  if dialog --yesno "Redis is not installed. Do you want to install it? Redis is required for gustave to function properly" 10 40; then
-    # User chose to install Redis
-    echo -n "Installer initializing..."
-    # Try to install Redis
-    rm -f $progress_file
-    sudo python3 ./.Redis.py > /dev/null 2>&1 &
-    if [ $? -eq 0 ]; then
-      log "Redis has been installed" "INFO"
-    else
-      log "Failed to install Redis" "ERROR"
-    fi
-    echo -e "\\b done."
-
-    while [ ! -f $progress_file ]
-    do
-      sleep 0.1
-    done
-
-    (
-    while true
-    do
-        progress=$(grep 'Percent:' $progress_file | tail -n1 | awk -F 'Percent: ' '{ print $2 }' | awk -F '.' '{ print $1 }')
-
-        if [ "$progress" == "100" ]; then
-            break
-        fi
-
-        echo $progress
-        sleep 0.1
-    done
-    ) | dialog --gauge "Installing Redis..." 10 70 0
-
-    if check_redis_installed; then
-      log "Redis was installed successfully." "INFO"
-      install_redis=1
-    else
-      log "Redis was not installed successfully." "ERROR"
-      dialog --title "Installation Error" --msgbox "Redis was not installed successfully. Please check the log for more information." 10 40
-      clear
-      exit 1
-    fi
+  # Check if the database was created successfully
+  if [ $? -eq 0 ]; then
+    log "Database created successfully." "INFO"
   else
-    log "User chose not to install Redis." "INFO"
-    install_redis=0
-  fi
-fi
-
-
-#//////////////////////////////////////////////////////////////////////////////
-#||||||||||||||||||||||||||||    Celery          ||||||||||||||||||||||||||||||
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-if check_celery_installed; then
-  log "Celery is already installed." "INFO"
-else
-  log "Celery is not installed." "INFO"
-  # Ask the user if they want to install Celery
-  if dialog --yesno "Celery is not installed. Do you want to install it?" 10 40; then
-    # User chose to install Celery
-    echo -n "Installer initializing..."
-    # Try to install Celery
-    sudo python3 ./.Celery.py > /dev/null 2>&1 &
-    if [ $? -eq 0 ]; then
-      log "Celery has been installed" "INFO"
-    else
-      log "Failed to install Celery" "ERROR"
-    fi
-    echo -e "\\b done."
-
-    while [ ! -f $progress_file ]
-    do
-      sleep 0.1
-    done
-
-    (
-    while true
-    do
-        # Get the last line of the progress file that contains 'Percent' and extract the percentage
-        progress=$(grep 'Percent:' $progress_file | tail -n1 | awk -F 'Percent: ' '{ print $2 }' | awk -F '.' '{ print $1 }')
-
-        # Check if the progress is 100, if so, break the loop
-        if [ "$progress" == "100" ]; then
-            break
-        fi
-
-        # Update the dialog command's progress bar
-        echo $progress
-
-        # Wait a bit before checking the progress again
-        sleep 0.1
-    done
-    ) else
-    log "User chose not to install Celery." "INFO"
+    log "Failed to create database." "ERROR"
+    dialog --title "Database Error" --msgbox "Failed to create database. Please check the log for more information." 10 40
+    clear
+    exit 1
   fi
 fi
 
@@ -404,6 +275,7 @@ fi
 #//////////////////////////////////////////////////////////////////////////////#
 #|||||||||||||||||||||||||       Jamf Pro        |||||||||||||||||||||||||||||#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+
 jamf_pro_url=""
 while [[ ! $jamf_pro_url =~ ^https:// ]]; do
   jamf_pro_url=$(dialog --stdout --inputbox "Dear esteemed guest, may we kindly request the URL of your Jamf Pro server?" 10 60)
@@ -439,8 +311,6 @@ while [[ -z "$category_name" ]]; do
     dialog --title "Input Required" --msgbox "Bro, you gotta give me the category name. It's required!" 10 40
   fi
 done
-
-
 ###############################################################################
 # Create the category in Jamf Pro
 ###############################################################################
@@ -461,6 +331,7 @@ fi
 #//////////////////////////////////////////////////////////////////////////////#
 #@@@@@@@@@@@@@@@@@@@    Creat the config.py        @@@@@@@@@@@@@@@@@@@@@@@@@@@@#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+
 cat << EOF > config.py
 class Config:
     """Base configuration."""
@@ -475,13 +346,6 @@ class Config:
     CATEGORY_ID = $category_id
     CATEGORY_NAME = "$category_name"
     PROFILE_DESCRIPTION = "This profile is used on the backend of your system.  Please ignore this."
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-    CELERY_ACCEPT_CONTENT = ['json']
-    CELERY_TASK_SERIALIZER = 'json'
-    CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_TIMEZONE = 'UTC'
-
 
 class DevelopmentConfig(Config):
     USE_WAITRESS = False
@@ -504,6 +368,7 @@ log "config.py generated" "INFO"
 #//////////////////////////////////////////////////////////////////////////////#
 #|||||||||||    Create the service and directory structure      |||||||||||||||#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+
 ###############################################################################
 # Create the gustave user
 ###############################################################################
@@ -517,7 +382,6 @@ else
     log "Failed to create the gustave user." "ERROR"
 fi
 
-
 ###############################################################################
 #Create directory
 ###############################################################################
@@ -528,7 +392,6 @@ if [ $? -eq 0 ]; then
 else
     log "Failed to create the gustave directory." "ERROR"
 fi
-
 
 ###############################################################################
 # Move the gustave executable to the proper location
@@ -542,7 +405,6 @@ else
     log "Failed to move gustave." "ERROR"
 fi
 
-
 ###############################################################################
 # Set the owner to gustave
 ###############################################################################
@@ -554,7 +416,6 @@ if [ $? -eq 0 ]; then
 else
     log "Failed to configure for gustave." "ERROR"
 fi
-
 
 ###############################################################################
 # Set the permissions
@@ -568,7 +429,6 @@ else
     log "Failed to modify gustave." "ERROR"
 fi
 
-
 ###############################################################################
 # Move the gustave.service file to the systemd directory
 ###############################################################################
@@ -580,7 +440,6 @@ if [ $? -eq 0 ]; then
 else
     log "Failed to create gustave service." "ERROR"
 fi
-
 
 ###############################################################################
 # Set the owner and permissions for the service file
@@ -601,7 +460,6 @@ else
     log "Failed to modify /etc/systemd/system/gustave.service to 644." "ERROR"
 fi
 
-
 ###############################################################################
 # Move the config.py file to the proper location
 ###############################################################################
@@ -613,7 +471,6 @@ if [ $? -eq 0 ]; then
 else
     log "Failed to move config.py into place" "ERROR"
 fi
-
 
 ###############################################################################
 # Set the owner and permissions for the config file
@@ -635,7 +492,6 @@ else
 fi
 sleep 1
 
-
 ###############################################################################
 # Reload the systemd daemon to recognize the new service
 ###############################################################################
@@ -648,7 +504,6 @@ else
 fi
 sleep 1
 
-
 ###############################################################################
 # Enable the service so it starts on boot
 ###############################################################################
@@ -660,7 +515,6 @@ else
     log "Failed to enable the gustave service." "ERROR"
 fi
 sleep 1
-
 
 ###############################################################################
 # Start the service
@@ -712,6 +566,7 @@ fi
 #//////////////////////////////////////////////////////////////////////////////#
 #|||||||||||||||||||||||||       Finish Up        |||||||||||||||||||||||||||||#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
+
 ###############################################################################
 # Completion message
 ###############################################################################

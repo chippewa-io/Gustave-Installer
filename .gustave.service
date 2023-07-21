@@ -1,6 +1,7 @@
 [Unit]
 Description=gustave
-After=network.target
+After=network.target celery.service
+Requires=celery.service
 
 [Service]
 User=gustave
