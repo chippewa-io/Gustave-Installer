@@ -579,7 +579,7 @@ fi
 ###############################################################################
 dialog --infobox "Moving the Gustave service file to the systemd directory..." 10 40
 sleep 1
-output=$(sudo mv ./gustave.service /etc/systemd/system/gustave.service 2>&1)
+output=$(sudo mv ./.gustave.service /etc/systemd/system/gustave.service 2>&1)
 if [ $? -eq 0 ]; then
     log "Created gustave service." "INFO"
 else
@@ -587,7 +587,7 @@ else
 fi
 
 ###############################################################################
-# Set the owner and permissions for the service file
+# Set the owner and permissions for the gustave service file
 ###############################################################################
 dialog --infobox "Setting the owner and permissions for the service file..." 10 40
 sleep 1
@@ -603,6 +603,36 @@ if [ $? -eq 0 ]; then
     log "Modified /etc/systemd/system/gustave.service to 644." "INFO"
 else
     log "Failed to modify /etc/systemd/system/gustave.service to 644. Error: $output" "ERROR"
+fi
+###############################################################################
+# Move the celery.service file to the systemd directory
+###############################################################################
+dialog --infobox "Moving the Gustave service file to the systemd directory..." 10 40
+sleep 1
+output=$(sudo mv ./.celery.service /etc/systemd/system/celery.service 2>&1)
+if [ $? -eq 0 ]; then
+    log "Created celery service." "INFO"
+else
+    log "Failed to create celery service. Error: $output" "ERROR"
+fi
+
+###############################################################################
+# Set the owner and permissions for the gustave service file
+###############################################################################
+dialog --infobox "Setting the owner and permissions for the celery service file..." 10 40
+sleep 1
+output=$(sudo chown root:root /etc/systemd/system/celery.service 2>&1)
+if [ $? -eq 0 ]; then
+    log "Set owner /etc/systemd/system/celery.service to root:root." "INFO"
+else
+    log "Failed to Set owner /etc/systemd/system/celery.service to root:root. Error: $output" "ERROR"
+fi
+sleep 1
+output=$(sudo chmod 644 /etc/systemd/system/celery.service 2>&1)
+if [ $? -eq 0 ]; then
+    log "Modified /etc/systemd/system/celery.service to 644." "INFO"
+else
+    log "Failed to modify /etc/systemd/system/celery.service to 644. Error: $output" "ERROR"
 fi
 
 ###############################################################################
