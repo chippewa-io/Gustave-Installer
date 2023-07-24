@@ -245,7 +245,7 @@ fi
 ###############################################################################
 # Prompt the user for MySQL Values
 ###############################################################################
-if [ "$install_mysql" != "0" ]; then
+if [ "$install_mysql" != "1" ]; then
   dialog --title "MySQL" --msgbox "MySQL is required for gustave to function properly. Please provide the following information." 10 40
   mysql_host=$(dialog --stdout --inputbox "MySQL Host:" 0 0)
 fi
