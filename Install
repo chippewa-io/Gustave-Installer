@@ -180,7 +180,22 @@ dialog --title "Welcome" --msgbox "Greetings, esteemed guest! Welcome to the ill
 #//////////////////////////////////////////////////////////////////////////////#
 #|||||||||||||||||||||||||       License        |||||||||||||||||||||||||||||||#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-license=$(dialog --stdout --inputbox "Splendid! Now, could you please provide us with your Activation Code?" 10 60)
+license=""
+while true; do
+    license=$(dialog --stdout --inputbox "Splendid! Now, could you please provide us with your Activation Code?" 10 60)
+    
+    # If the input is 16 alphanumeric characters without hyphens, insert the hyphens
+    if [[ $license =~ ^[0-9a-zA-Z]{16}$ ]]; then
+        license="${license:0:4}-${license:4:4}-${license:8:4}-${license:12:4}"
+    fi
+
+    # Validate the input (with or without auto-added hyphens)
+    if [[ $license =~ ^[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}$ ]]; then
+        break
+    else
+        dialog --msgbox "That doesn't look like a proper Code. Please double-check your activation code." 10 60
+    fi
+done
 
 
 #//////////////////////////////////////////////////////////////////////////////
@@ -302,7 +317,7 @@ else
   # Ask the user if they want to install Redis
   if dialog --yesno "Redis is not installed. Do you want to install it? Redis is required for gustave to function properly" 10 40; then
     # User chose to install Redis
-    echo -n "Installer initializing..."
+    log "User chose to install Redis." "INFO"
     # Try to install Redis
     rm -f $progress_file
     sudo python3 ./.Redis.py > /dev/null 2>&1 &
@@ -311,7 +326,7 @@ else
     else
       log "Failed to install Redis" "ERROR"
     fi
-    echo -e "\\b done."
+    log "Waiting for Redis to finish installing..." "INFO"
 
     while [ ! -f $progress_file ]
     do
@@ -358,7 +373,7 @@ else
   # Ask the user if they want to install Celery
   if dialog --yesno "Celery is not installed. Do you want to install it?" 10 40; then
     # User chose to install Celery
-    echo -n "Installer initializing..."
+    log "User chose to install Celery." "INFO"
     # Try to install Celery
     sudo python3 ./.Celery.py > /dev/null 2>&1 &
     if [ $? -eq 0 ]; then
@@ -366,7 +381,7 @@ else
     else
       log "Failed to install Celery" "ERROR"
     fi
-    echo -e "\\b done."
+    log "Waiting for Celery to finish installing..." "INFO"
 
     while [ ! -f $progress_file ]
     do
@@ -505,7 +520,7 @@ log "config.py generated" "INFO"
 dialog --infobox "Creating gustave user..." 10 40
 log "Creating gustave user." "INFO"
 sleep 1
-sudo adduser --system --group gustave
+sudo adduser --system --group gustave --no-create-home
 if [ $? -eq 0 ]; then
     log "Created the gustave user." "INFO"
 else
