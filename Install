@@ -88,7 +88,6 @@ do
   sleep .1
 done
 wait $pid
-echo -e "\b done."
 
 
 #//////////////////////////////////////////////////////////////////////////////
@@ -201,7 +200,6 @@ else
     else
       log "Failed to install MySQL" "ERROR"
     fi
-    echo -e "\\b done."
 
     while [ ! -f $progress_file ]
     do
