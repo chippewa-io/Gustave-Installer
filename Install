@@ -115,7 +115,6 @@ if ! command -v jq >/dev/null 2>&1; then
     done
     wait $pid
     log "jq has been installed" "INFO"
-    echo -e "\b done."
 fi
 
 
@@ -141,7 +140,6 @@ if ! command -v dialog >/dev/null 2>&1; then
     done
     wait $pid
     log "dialog has been installed" "INFO"
-    echo -e "\b done."
 fi
 
 
@@ -167,7 +165,6 @@ if ! command -v python3-apt >/dev/null 2>&1; then
     done
     wait $pid
     log "python3-apt has been installed" "INFO"
-    echo -e "\b done."
 fi
 
 
