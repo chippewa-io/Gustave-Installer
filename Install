@@ -575,6 +575,31 @@ else
 fi
 
 ###############################################################################
+# Move the celery_tasks.py file to the proper location
+output=$(sudo mv ./.celery_tasks.py /etc/gustave/celery_tasks.py 2>&1)
+if [ $? -eq 0 ]; then
+    log "Moved celery_tasks.py into place." "INFO"
+else
+    log "Failed to move celery_tasks.py into place. Error: $output" "ERROR"
+fi
+###############################################################################
+#Set permissions and owner of celery_tasks.py
+output=$(sudo chown gustave:gustave /etc/gustave/celery_tasks.py)
+if [ $? -eq 0 ]; then
+    log "Set owner /etc/gustave/celery_tasks.py to gustave:gustave." "INFO"
+else
+    log "Failed to set owner /etc/gustave/celery_tasks.py to gustave:gustave. Error: $output" "ERROR"
+fi
+
+output=$(sudo chmod 644 /etc/gustave/celery_tasks.py)
+if [ $? -eq 0 ]; then
+    log "Modified /etc/gustave/celery_tasks.py to 644." "INFO"
+else
+    log "Failed to modify /etc/gustave/celery_tasks.py to 644. Error: $output" "ERROR"
+fi
+
+
+###############################################################################
 # Move the gustave.service file to the systemd directory
 ###############################################################################
 dialog --infobox "Moving the Gustave service file to the systemd directory..." 10 40
