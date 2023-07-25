@@ -485,6 +485,7 @@ class Config:
     CATEGORY_ID = $category_id
     CATEGORY_NAME = "$category_name"
     PROFILE_DESCRIPTION = "This profile is used on the backend of your system.  Please ignore this."
+    ACTIVATION_CODE = "$license"
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
     CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
     CELERY_ACCEPT_CONTENT = ['json']
@@ -497,7 +498,7 @@ class DevelopmentConfig(Config):
     USE_WAITRESS = False
     DEBUG = True
     TESTING = True
-    TOKEN_EXPIRATION = 5 #in seconds.  31556926=year 2629743=month 86400=day 3600=hour
+    TOKEN_EXPIRATION = 60 #in seconds.  31556926=year 2629743=month 86400=day 3600=hour
 
 class TestingConfig(Config):
     USE_WAITRESS = False
