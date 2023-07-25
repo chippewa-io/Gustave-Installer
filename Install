@@ -51,6 +51,39 @@ log() {
         echo "$(date '+%Y-%m-%d %H:%M:%S') - $level - $message" >> install.log
     fi
 }
+setup_service() {
+    local service_file=$1
+    local dest_path=$2
+    local owner=$3
+    local permissions=$4
+
+    # Move the service file
+    output=$(sudo mv ${service_file} ${dest_path} 2>&1)
+    if [ $? -eq 0 ]; then
+        log "Moved ${service_file} into place." "INFO"
+    else
+        log "Failed to move ${service_file} into place. Error: $output" "ERROR"
+        return 1
+    fi
+
+    # Set the owner
+    output=$(sudo chown ${owner} ${dest_path} 2>&1)
+    if [ $? -eq 0 ]; then
+        log "Set owner ${dest_path} to ${owner}." "INFO"
+    else
+        log "Failed to set owner ${dest_path} to ${owner}. Error: $output" "ERROR"
+        return 1
+    fi
+
+    # Set the permissions
+    output=$(sudo chmod ${permissions} ${dest_path} 2>&1)
+    if [ $? -eq 0 ]; then
+        log "Modified ${dest_path} to ${permissions}." "INFO"
+    else
+        log "Failed to modify ${dest_path} to ${permissions}. Error: $output" "ERROR"
+        return 1
+    fi
+}
 ###############################################################################
 #                  Check if the script is running as root                     #
 ###############################################################################
@@ -208,7 +241,7 @@ else
   # Ask the user if they want to install MySQL
   if dialog --yesno "MySQL is not installed. Do you want to install it?" 10 40; then
     # Try to install MySQL
-    sudo python3 ./.MySQL.py > /dev/null 2>&1 &
+    sudo python3 ./.Installers/MySQL.py > /dev/null 2>&1 &
     if [ $? -eq 0 ]; then
       log "MySQL has been installed" "INFO"
       mysql_installed=1
@@ -320,7 +353,7 @@ else
     log "User chose to install Redis." "INFO"
     # Try to install Redis
     rm -f $progress_file
-    sudo python3 ./.Redis.py > /dev/null 2>&1 &
+    sudo python3 ./.Installers/Redis.py > /dev/null 2>&1 &
     if [ $? -eq 0 ]; then
       log "Redis has been installed" "INFO"
     else
@@ -375,7 +408,7 @@ else
     # User chose to install Celery
     log "User chose to install Celery." "INFO"
     # Try to install Celery
-    sudo python3 ./.Celery.py > /dev/null 2>&1 &
+    sudo python3 ./.Installers/Celery.py > /dev/null 2>&1 &
     if [ $? -eq 0 ]; then
       log "Celery has been installed" "INFO"
     else
@@ -544,7 +577,7 @@ fi
 ###############################################################################
 dialog --infobox "Moving the gustave executable to the proper location..." 10 40
 sleep 1
-output=$(sudo mv ./gustave /usr/local/bin/gustave 2>&1)
+output=$(sudo mv ./.Binaries/gustave /usr/local/bin/gustave 2>&1)
 if [ $? -eq 0 ]; then
     log "gustave moved properly." "INFO"
 else
@@ -576,90 +609,19 @@ else
 fi
 
 ###############################################################################
-# Move the celery_tasks.py file to the proper location
-output=$(sudo mv ./.celery_tasks.py /etc/gustave/celery_tasks.py 2>&1)
-if [ $? -eq 0 ]; then
-    log "Moved celery_tasks.py into place." "INFO"
-else
-    log "Failed to move celery_tasks.py into place. Error: $output" "ERROR"
-fi
+#Setup and configure the necessary services
 ###############################################################################
-#Set permissions and owner of celery_tasks.py
-output=$(sudo chown gustave:gustave /etc/gustave/celery_tasks.py)
-if [ $? -eq 0 ]; then
-    log "Set owner /etc/gustave/celery_tasks.py to gustave:gustave." "INFO"
-else
-    log "Failed to set owner /etc/gustave/celery_tasks.py to gustave:gustave. Error: $output" "ERROR"
-fi
+dialog --infobox "Setting up the gustave service..." 10 40
+setup_service "./.Services/gustave.service" "/etc/systemd/system/gustave.service" "root:root" "644"
 
-output=$(sudo chmod 644 /etc/gustave/celery_tasks.py)
-if [ $? -eq 0 ]; then
-    log "Modified /etc/gustave/celery_tasks.py to 644." "INFO"
-else
-    log "Failed to modify /etc/gustave/celery_tasks.py to 644. Error: $output" "ERROR"
-fi
+dialog --infobox "Setting up the gustave-jobs service..." 10 40
+setup_service "./.Services/gustave-jobs.service" "/etc/systemd/system/gustave-jobs.service" "root:root" "644"
 
+dialog --infobox "Setting up the gustave-scheduler service..." 10 40
+setup_service "./.Services/gustave-scheduler.service" "/etc/systemd/system/gustave-scheduler.service" "root:root" "644"
 
-###############################################################################
-# Move the gustave.service file to the systemd directory
-###############################################################################
-dialog --infobox "Moving the Gustave service file to the systemd directory..." 10 40
-sleep 1
-output=$(sudo mv ./.gustave.service /etc/systemd/system/gustave.service 2>&1)
-if [ $? -eq 0 ]; then
-    log "Created gustave service." "INFO"
-else
-    log "Failed to create gustave service. Error: $output" "ERROR"
-fi
-
-###############################################################################
-# Set the owner and permissions for the gustave service file
-###############################################################################
-dialog --infobox "Setting the owner and permissions for the service file..." 10 40
-sleep 1
-output=$(sudo chown root:root /etc/systemd/system/gustave.service 2>&1)
-if [ $? -eq 0 ]; then
-    log "Set owner /etc/systemd/system/gustave.service to root:root." "INFO"
-else
-    log "Failed to Set owner /etc/systemd/system/gustave.service to root:root. Error: $output" "ERROR"
-fi
-sleep 1
-output=$(sudo chmod 644 /etc/systemd/system/gustave.service 2>&1)
-if [ $? -eq 0 ]; then
-    log "Modified /etc/systemd/system/gustave.service to 644." "INFO"
-else
-    log "Failed to modify /etc/systemd/system/gustave.service to 644. Error: $output" "ERROR"
-fi
-###############################################################################
-# Move the celery.service file to the systemd directory
-###############################################################################
-dialog --infobox "Moving the Gustave service file to the systemd directory..." 10 40
-sleep 1
-output=$(sudo mv ./.celery.service /etc/systemd/system/celery.service 2>&1)
-if [ $? -eq 0 ]; then
-    log "Created celery service." "INFO"
-else
-    log "Failed to create celery service. Error: $output" "ERROR"
-fi
-
-###############################################################################
-# Set the owner and permissions for the gustave service file
-###############################################################################
-dialog --infobox "Setting the owner and permissions for the celery service file..." 10 40
-sleep 1
-output=$(sudo chown root:root /etc/systemd/system/celery.service 2>&1)
-if [ $? -eq 0 ]; then
-    log "Set owner /etc/systemd/system/celery.service to root:root." "INFO"
-else
-    log "Failed to Set owner /etc/systemd/system/celery.service to root:root. Error: $output" "ERROR"
-fi
-sleep 1
-output=$(sudo chmod 644 /etc/systemd/system/celery.service 2>&1)
-if [ $? -eq 0 ]; then
-    log "Modified /etc/systemd/system/celery.service to 644." "INFO"
-else
-    log "Failed to modify /etc/systemd/system/celery.service to 644. Error: $output" "ERROR"
-fi
+dialog --infobox "Setting up the gustave target..." 10 40
+setup_service "./.Services/gustave.target" "/etc/systemd/system/gustave.target" "root:root" "644"
 
 ###############################################################################
 # Move the config.py file to the proper location
@@ -693,9 +655,10 @@ else
 fi
 
 ###############################################################################
-# Reload the systemd daemon to recognize the new service
+# Reload the systemd daemon to recognize the new services and target
 ###############################################################################
-dialog --infobox "Reloading the systemd daemon to recognize the new service..." 10 40
+dialog --infobox "Reloading the systemd daemon to recognize the new services and target..." 10 40
+sleep 1
 output=$(sudo systemctl daemon-reload 2>&1)
 if [ $? -eq 0 ]; then
     log "Reloaded the systemd daemon." "INFO"
@@ -704,66 +667,64 @@ else
 fi
 
 ###############################################################################
-# Enable the service so it starts on boot
+# Enable the gustave.target so all services start on boot
 ###############################################################################
-dialog --infobox "Enabling the service so it starts on boot..." 10 40
-output=$(sudo systemctl enable gustave 2>&1)
+dialog --infobox "Enabling the gustave.target so all services start on boot..." 10 40
+output=$(sudo systemctl enable gustave.target 2>&1)
 if [ $? -eq 0 ]; then
-    log "Enabled the gustave service." "INFO"
+    log "Enabled the gustave.target." "INFO"
 else
-    log "Failed to enable the gustave service. Error: $output" "ERROR"
+    log "Failed to enable the gustave.target. Error: $output" "ERROR"
 fi
 
 ###############################################################################
-# Start the service
+# Start the gustave.target
 ###############################################################################
-dialog --infobox "Starting the service..." 10 40
-output=$(sudo systemctl start gustave 2>&1)
+dialog --infobox "Starting the gustave.target..." 10 40
+output=$(sudo systemctl start gustave.target 2>&1)
 if [ $? -eq 0 ]; then
-    log "Started the gustave service." "INFO"
+    log "Started the gustave.target." "INFO"
 else
-    log "Failed to start the gustave service. Error: $output" "ERROR"
+    log "Failed to start the gustave.target. Error: $output" "ERROR"
 fi
 
-# Check if service is running
+# Check if main gustave service is running
 systemctl is-active --quiet gustave
 if [ $? -eq 0 ]; then
     activate=1
     log "gustave service is running." "INFO"
 else
     activate=0
-    log "gustave service is not running." "ERROR"
+    log "gustave service failed to start....  Please check the install.log for more information." "ERROR"
 fi
 
-if [ $activate -eq 1 ]; then
-    dialog --msgbox "Installation complete!  Activating product..." 0 0
-    log "Reaching out to activate license" "INFO"
-    response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/activate 2>&1)
-    status=$(echo $response | jq -r '.message')
+# Display the activation in progress message
+dialog --title "Activation" --infobox "Activating product... Please wait." 10 40
+sleep 2
+
+# Attempt to activate the license
+log "Reaching out to activate license" "INFO"
+response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/activate 2>&1)
+status=$(echo $response | jq -r '.message')
+
+# Check the activation response
+if [ "$status" == "License activated" ]; then
+    dialog --title "Activation" --infobox "Activation successful!" 10 40
+    log "License activation successful. Response: $response" "INFO"
+    sleep 2
+
+    expiry_response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" $server/api/verify 2>&1)
+    expiry=$(echo $expiry_response | jq -r '.remaining_time')
     
-    if [ "$status" == "License activated" ]; then
-        dialog --msgbox "Activation successful!" 0 0
-        log "License activation successful. Response: $response" "INFO"
-        
-        expiry_response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" $server/api/verify 2>&1)
-        expiry=$(echo $expiry_response | jq -r '.remaining_time')
-        
-        if [ -z "$expiry" ]; then
-            log "Error checking license expiry. Response: $expiry_response" "ERROR"
-        else
-            log "License expiry checked. Remaining time: $expiry" "INFO"
-        fi
+    if [ -z "$expiry" ]; then
+        log "Error checking license expiry. Response: $expiry_response" "ERROR"
     else
-        dialog --msgbox "Activation failed!  Please examine the log to ensure there were no errors." 0 0
-        log "Activation failed! Response: $response" "ERROR"
-        clear
-        exit 1
+        log "License expiry checked. Remaining time: $expiry" "INFO"
     fi
-    clear
-    exit 0
 else
-    dialog --msgbox "Installation failed!  Please examine the log to ensure there were no errors." 0 0
-    log "Installation failed!" "ERROR"
+    dialog --title "Activation" --infobox "Activation failed! Check logs for details." 10 40
+    log "Activation failed! Response: $response" "ERROR"
+    sleep 2
     clear
     exit 1
 fi

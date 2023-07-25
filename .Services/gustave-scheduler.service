@@ -1,17 +1,15 @@
 [Unit]
-Description=gustave
-After=network.target celery.service
-Requires=celery.service
+Description=Schedules the work to be done by the gustave-jobs service
+After=gustave-jobs.service
+PartOf=gustave.target
 
 [Service]
 User=gustave
 Environment="FLASK_CONFIG=ProductionConfig"
 Environment="PYTHONPATH=${PYTHONPATH}:/usr/local/gustave"
-WorkingDirectory=/usr/local/bin/
-ExecStart=/usr/local/bin/gustave
+WorkingDirectory=/etc/gustave/
+ExecStart=celery -A entry:app beat --loglevel=info
 Restart=always
+RestartSec=5s
 StandardOutput=append:/var/log/gustave.log
 StandardError=append:/var/log/gustave.log
-
-[Install]
-WantedBy=multi-user.target

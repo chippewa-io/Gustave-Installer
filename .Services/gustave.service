@@ -1,16 +1,18 @@
 [Unit]
-Description=gustave Celery Worker
+Description=Loads the Gustave web app
 After=network.target
 
 [Service]
 User=gustave
 Environment="FLASK_CONFIG=ProductionConfig"
-Environment="PYTHONPATH=${PYTHONPATH}:/etc/gustave"
-WorkingDirectory=/etc/gustave
-ExecStart=/usr/bin/celery -A celery_tasks.celery worker --loglevel=info
+Environment="PYTHONPATH=${PYTHONPATH}:/usr/local/gustave"
+WorkingDirectory=/usr/local/bin/
+ExecStart=/usr/local/bin/gustave
 Restart=always
+RestartSec=5s
 StandardOutput=append:/var/log/gustave.log
 StandardError=append:/var/log/gustave.log
+PartOf=gustave.target
 
 [Install]
 WantedBy=multi-user.target
