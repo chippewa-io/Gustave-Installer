@@ -151,32 +151,6 @@ if ! command -v dialog >/dev/null 2>&1; then
     log "dialog has been installed" "INFO"
 fi
 
-
-###############################################################################
-#          Check if python3-apt is installed and install it if not            #
-###############################################################################
-if ! command -v python3-apt >/dev/null 2>&1; then
-    log "python3-apt not installed.  Installing python3-apt" "INFO"
-    echo -ne "\r\e[K"
-    echo -n "Installing dependencies..."
-    # Try to install python3-apt
-    sudo apt install -y python3-apt &> /dev/null &
-    pid=$! # Process Id of the previous running command
-
-    spin='-\|/'
-
-    i=0
-    while kill -0 $pid 2>/dev/null
-    do
-      i=$(( (i+1) %4 ))
-      printf "\b${spin:$i:1}"
-      sleep .1
-    done
-    wait $pid
-    log "python3-apt has been installed" "INFO"
-fi
-
-
 #//////////////////////////////////////////////////////////////////////////////
 #/////////////////////////           Begin          ///////////////////////////
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
