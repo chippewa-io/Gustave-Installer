@@ -352,7 +352,7 @@ fi
 #//////////////////////////////////////////////////////////////////////////////#
 #@@@@@@@@@@@@@@@@@@@    Creat the config.py        @@@@@@@@@@@@@@@@@@@@@@@@@@@@#
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-cat << EOF > config.py
+cat << EOF > ./.Configuration/config.py
 class Config:
     """Base configuration."""
     MYSQL_DATABASE_HOST = '$mysql_host'
@@ -456,21 +456,12 @@ fi
 dialog --infobox "Setting up the gustave service..." 10 40
 setup_service "./.Services/gustave.service" "/etc/systemd/system/gustave.service" "root:root" "644"
 
-dialog --infobox "Setting up the gustave-jobs service..." 10 40
-setup_service "./.Services/gustave-jobs.service" "/etc/systemd/system/gustave-jobs.service" "root:root" "644"
-
-dialog --infobox "Setting up the gustave-scheduler service..." 10 40
-setup_service "./.Services/gustave-scheduler.service" "/etc/systemd/system/gustave-scheduler.service" "root:root" "644"
-
-dialog --infobox "Setting up the gustave target..." 10 40
-setup_service "./.Services/gustave.target" "/etc/systemd/system/gustave.target" "root:root" "644"
-
 ###############################################################################
 # Move the config.py file to the proper location
 ###############################################################################
 dialog --infobox "Moving the config.py file to the proper location..." 10 40
 sleep 1
-output=$(sudo mv ./config.py /etc/gustave/config.py 2>&1)
+output=$(sudo mv ./.Configuration/config.py /etc/gustave/config.py 2>&1)
 if [ $? -eq 0 ]; then
     log "Moved config.py into place." "INFO"
 else
