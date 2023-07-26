@@ -17,29 +17,6 @@ check_mysql_installed() {
     return 1
   fi
 }
-check_pip3_installed() {
-  if command -v pip3 > /dev/null 2>&1; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-check_redis_installed() {
-  if command -v redis-server > /dev/null 2>&1; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-check_celery_installed() {
-  if pip3 show celery > /dev/null 2>&1; then
-    return 0
-  else
-    return 1
-  fi
-}
 
 log() {
     local level="$2"
