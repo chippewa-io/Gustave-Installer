@@ -1,3 +1,0 @@
-[Unit]
-Description=Starts all gustave services
-Wants=gustave.service gustave-jobs.service gustave-scheduler.service

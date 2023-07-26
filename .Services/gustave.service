@@ -12,7 +12,6 @@ Restart=always
 RestartSec=5s
 StandardOutput=append:/var/log/gustave.log
 StandardError=append:/var/log/gustave.log
-PartOf=gustave.target
 
 [Install]
 WantedBy=multi-user.target
