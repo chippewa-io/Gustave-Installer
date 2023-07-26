@@ -270,26 +270,34 @@ if [ "$install_mysql" != "0" ]; then
   sudo mysql -u root -e "FLUSH PRIVILEGES;" || log "Failed to flush privileges." "ERROR"
 
   # Create the secret_table
-  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE secret_table (\
-  id INT NOT NULL AUTO_INCREMENT, \
-  udid VARCHAR(255) NOT NULL, \
-  secret VARCHAR(255) NOT NULL, \
-  computer_id INT NOT NULL, \
-  expiration INT NOT NULL, \
-  is_active TINYINT(1) DEFAULT 1, \
-  PRIMARY KEY (id));" || log "Failed to create secret_table." "ERROR"
+  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE \`secret_table\` (
+    \`id\` int NOT NULL AUTO_INCREMENT,
+    \`udid\` varchar(255) NOT NULL,
+    \`secret\` varchar(255) NOT NULL,
+    \`computer_id\` int NOT NULL,
+    \`expiration\` int NOT NULL,
+    \`is_active\` tinyint(1) DEFAULT '1',
+    PRIMARY KEY (\`id\`)
+  ) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;" || log "Failed to create secret_table." "ERROR"
 
   # Create the active_profiles table
-  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE active_profiles (profile_id INT NOT NULL, computer_id INT NOT NULL, PRIMARY KEY (profile_id));" || log "Failed to create active_profiles table." "ERROR"
+  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE \`active_profiles\` (
+    \`profile_id\` int NOT NULL,
+    \`computer_id\` int NOT NULL,
+    PRIMARY KEY (\`profile_id\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;" || log "Failed to create active_profiles table." "ERROR"
 
   # Create the expired_profiles table
-  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE expired_profiles (\
-  profile_id INT NOT NULL, \
-  computer_id INT NOT NULL, \
-  PRIMARY KEY (profile_id));" || log "Failed to create expired_profiles table." "ERROR"
+  sudo mysql -u root -e "USE $mysql_db; CREATE TABLE \`expired_profiles\` (
+    \`profile_id\` int NOT NULL,
+    \`computer_id\` int NOT NULL,
+    \`deletion\` bigint DEFAULT ((unix_timestamp() + 60)),
+    PRIMARY KEY (\`profile_id\`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;" || log "Failed to create expired_profiles table." "ERROR"
 
   log "Database created successfully." "INFO"
 fi
+
 
 sleep 1
 
