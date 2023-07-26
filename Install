@@ -558,7 +558,7 @@ sleep 2
 
 # Attempt to activate the license
 log "Reaching out to activate license" "INFO"
-response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/activate 2>&1)
+response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/activate)
 status=$(echo $response | jq -r '.message')
 
 # Check the activation response
@@ -567,7 +567,7 @@ if [ "$status" == "License activated" ]; then
     log "License activation successful. Response: $response" "INFO"
     sleep 2
 
-    expiry_response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" $server/api/verify 2>&1)
+    expiry_response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/verify)
     expiry=$(echo $expiry_response | jq -r '.remaining_time')
     
     if [ -z "$expiry" ]; then
