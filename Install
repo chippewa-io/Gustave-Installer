@@ -449,13 +449,34 @@ if [ $? -eq 0 ]; then
 else
     log "Failed to modify gustave. Error: $output" "ERROR"
 fi
-
+###############################################################################
+# Create the log file
+###############################################################################
+dialog --infobox "Creating our log file..." 10 40
+sleep 1
+output=$(touch /var/log/gustave.log)
+if [ $? -eq 0 ]; then
+    log "Created the log file." "INFO"
+else
+    log "Failed to create the log file. Error: $output" "ERROR"
+fi
+output=$(chown gustave:gustave /var/log/gustave.log)
+if [ $? -eq 0 ]; then
+    log "Set the owner of the log file." "INFO"
+else
+    log "Failed to set the owner of the log file. Error: $output" "ERROR"
+fi
+output=$(chmod 644 /var/log/gustave.log)
+if [ $? -eq 0 ]; then
+    log "Set the permissions of the log file." "INFO"
+else
+    log "Failed to set the permissions of the log file. Error: $output" "ERROR"
+fi
 ###############################################################################
 #Setup and configure the necessary services
 ###############################################################################
 dialog --infobox "Setting up the gustave service..." 10 40
 setup_service "./.Services/gustave.service" "/etc/systemd/system/gustave.service" "root:root" "644"
-
 ###############################################################################
 # Move the config.py file to the proper location
 ###############################################################################
