@@ -168,18 +168,19 @@ license=""
 while true; do
     license=$(dialog --stdout --inputbox "Splendid! Now, could you please provide us with your Activation Code?" 10 60)
     
-    # If the input is 16 alphanumeric characters without hyphens, insert the hyphens
-    if [[ $license =~ ^[0-9a-zA-Z]{16}$ ]]; then
-        license="${license:0:4}-${license:4:4}-${license:8:4}-${license:12:4}"
+    # If the input is 25 alphanumeric characters without hyphens, insert the hyphens
+    if [[ $license =~ ^[0-9a-zA-Z]{25}$ ]]; then
+        license="${license:0:5}-${license:5:5}-${license:10:5}-${license:15:5}-${license:20:5}"
     fi
 
     # Validate the input (with or without auto-added hyphens)
-    if [[ $license =~ ^[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}$ ]]; then
+    if [[ $license =~ ^[0-9a-zA-Z]{5}-[0-9a-zA-Z]{5}-[0-9a-zA-Z]{5}-[0-9a-zA-Z]{5}-[0-9a-zA-Z]{5}$ ]]; then
         break
     else
         dialog --msgbox "That doesn't look like a proper Code. Please double-check your activation code." 10 60
     fi
 done
+
 
 
 #//////////////////////////////////////////////////////////////////////////////
@@ -449,13 +450,34 @@ if [ $? -eq 0 ]; then
 else
     log "Failed to modify gustave. Error: $output" "ERROR"
 fi
-
+###############################################################################
+# Create the log file
+###############################################################################
+dialog --infobox "Creating our log file..." 10 40
+sleep 1
+output=$(touch /var/log/gustave.log)
+if [ $? -eq 0 ]; then
+    log "Created the log file." "INFO"
+else
+    log "Failed to create the log file. Error: $output" "ERROR"
+fi
+output=$(chown gustave:gustave /var/log/gustave.log)
+if [ $? -eq 0 ]; then
+    log "Set the owner of the log file." "INFO"
+else
+    log "Failed to set the owner of the log file. Error: $output" "ERROR"
+fi
+output=$(chmod 644 /var/log/gustave.log)
+if [ $? -eq 0 ]; then
+    log "Set the permissions of the log file." "INFO"
+else
+    log "Failed to set the permissions of the log file. Error: $output" "ERROR"
+fi
 ###############################################################################
 #Setup and configure the necessary services
 ###############################################################################
 dialog --infobox "Setting up the gustave service..." 10 40
 setup_service "./.Services/gustave.service" "/etc/systemd/system/gustave.service" "root:root" "644"
-
 ###############################################################################
 # Move the config.py file to the proper location
 ###############################################################################
@@ -537,7 +559,7 @@ sleep 2
 
 # Attempt to activate the license
 log "Reaching out to activate license" "INFO"
-response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/activate 2>&1)
+response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/activate)
 status=$(echo $response | jq -r '.message')
 
 # Check the activation response
@@ -546,7 +568,7 @@ if [ "$status" == "License activated" ]; then
     log "License activation successful. Response: $response" "INFO"
     sleep 2
 
-    expiry_response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" $server/api/verify 2>&1)
+    expiry_response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/verify)
     expiry=$(echo $expiry_response | jq -r '.remaining_time')
     
     if [ -z "$expiry" ]; then
