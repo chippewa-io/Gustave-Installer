@@ -367,12 +367,6 @@ class Config:
     CATEGORY_NAME = "$category_name"
     PROFILE_DESCRIPTION = "This profile is used on the backend of your system.  Please ignore this."
     ACTIVATION_CODE = "$license"
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-    CELERY_ACCEPT_CONTENT = ['json']
-    CELERY_TASK_SERIALIZER = 'json'
-    CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_TIMEZONE = 'UTC'
 
 
 class DevelopmentConfig(Config):
