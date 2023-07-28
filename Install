@@ -518,9 +518,9 @@ else
 fi
 
 ###############################################################################
-# Reload the systemd daemon to recognize the new services and target
+# Reload the systemd daemon to recognize the new services
 ###############################################################################
-dialog --infobox "Reloading the systemd daemon to recognize the new services and target..." 10 40
+dialog --infobox "Reloading the systemd daemon to recognize the new services..." 10 40
 sleep 1
 output=$(sudo systemctl daemon-reload 2>&1)
 if [ $? -eq 0 ]; then
@@ -530,25 +530,14 @@ else
 fi
 
 ###############################################################################
-# Enable the gustave.target so all services start on boot
+# Start the gustave.service
 ###############################################################################
-dialog --infobox "Enabling the gustave.target so all services start on boot..." 10 40
-output=$(sudo systemctl enable gustave.target 2>&1)
+dialog --infobox "Starting the gustave.service..." 10 40
+output=$(sudo systemctl start gustave.service 2>&1)
 if [ $? -eq 0 ]; then
-    log "Enabled the gustave.target." "INFO"
+    log "Started the gustave.service." "INFO"
 else
-    log "Failed to enable the gustave.target. Error: $output" "ERROR"
-fi
-
-###############################################################################
-# Start the gustave.target
-###############################################################################
-dialog --infobox "Starting the gustave.target..." 10 40
-output=$(sudo systemctl start gustave.target 2>&1)
-if [ $? -eq 0 ]; then
-    log "Started the gustave.target." "INFO"
-else
-    log "Failed to start the gustave.target. Error: $output" "ERROR"
+    log "Failed to start the gustave.service. Error: $output" "ERROR"
 fi
 
 # Check if main gustave service is running
