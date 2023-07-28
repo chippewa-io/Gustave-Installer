@@ -356,7 +356,24 @@ if [[ "$category_id" == null ]]; then
   clear
   exit 1
 fi
-
+###############################################################################
+# Create the Smart Group in Jamf Pro
+###############################################################################
+# Create the Smart Group and get the Name
+smartgroup=""
+while [[ -z "$smartgroup" ]]; do
+  smartgroup=$(dialog --stdout --inputbox "CATEGORY_NAME:" 0 0)
+  if [[ -z "$smartgroup" ]]; then
+    dialog --title "Input Required" --msgbox "Bro, you gotta give me the category name. It's required!" 10 40
+  fi
+done
+#put xml into variable
+data="<computer_group>
+	<name>$smartgroup</name>
+	<is_smart>true</is_smart>
+</computer_group>"
+#post xml to jamf pro
+curl -s -u "$jamf_pro_username":"$jamf_pro_password" "$jamf_pro_url"/JSSResource/computergroups/id/0 -X POST -H "Content-Type: text/xml" -d "$data" > /dev/null
 
 #//////////////////////////////////////////////////////////////////////////////#
 #@@@@@@@@@@@@@@@@@@@    Creat the config.py        @@@@@@@@@@@@@@@@@@@@@@@@@@@@#
@@ -376,6 +393,7 @@ class Config:
     CATEGORY_NAME = "$category_name"
     PROFILE_DESCRIPTION = "This profile is used on the backend of your system.  Please ignore this."
     ACTIVATION_CODE = "$license"
+    SMART_GROUP = "$smartgroup"
 
 
 class DevelopmentConfig(Config):
