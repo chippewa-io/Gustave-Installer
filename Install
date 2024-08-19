@@ -160,29 +160,6 @@ fi
 log "starting Dialog now" "INFO"
 dialog --title "Welcome" --msgbox "Greetings, esteemed guest! Welcome to the illustrious Gustave installation process. Shall we begin?" 10 40
 
-
-#//////////////////////////////////////////////////////////////////////////////#
-#|||||||||||||||||||||||||       License        |||||||||||||||||||||||||||||||#
-#\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
-license=""
-while true; do
-    license=$(dialog --stdout --inputbox "Splendid! Now, could you please provide us with your Activation Code?" 10 60)
-    
-    # If the input is 25 alphanumeric characters without hyphens, insert the hyphens
-    if [[ $license =~ ^[0-9a-zA-Z]{25}$ ]]; then
-        license="${license:0:5}-${license:5:5}-${license:10:5}-${license:15:5}-${license:20:5}"
-    fi
-
-    # Validate the input (with or without auto-added hyphens)
-    if [[ $license =~ ^[0-9a-zA-Z]{5}-[0-9a-zA-Z]{5}-[0-9a-zA-Z]{5}-[0-9a-zA-Z]{5}-[0-9a-zA-Z]{5}$ ]]; then
-        break
-    else
-        dialog --msgbox "That doesn't look like a proper Code. Please double-check your activation code." 10 60
-    fi
-done
-
-
-
 #//////////////////////////////////////////////////////////////////////////////
 #||||||||||||||||||||||||||||    MySQL          ||||||||||||||||||||||||||||||
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -392,7 +369,6 @@ class Config:
     CATEGORY_ID = $category_id
     CATEGORY_NAME = "$category_name"
     PROFILE_DESCRIPTION = "This profile is used on the backend of your system.  Please ignore this."
-    ACTIVATION_CODE = "$license"
     SMART_GROUP = "$smartgroup"
 
 
@@ -567,38 +543,6 @@ else
     activate=0
     log "gustave service failed to start....  Please check the install.log for more information." "ERROR"
 fi
-
-# Display the activation in progress message
-dialog --title "Activation" --infobox "Activating product... Please wait." 10 40
-sleep 2
-
-# Attempt to activate the license
-log "Reaching out to activate license" "INFO"
-response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/activate)
-status=$(echo $response | jq -r '.message')
-
-# Check the activation response
-if [ "$status" == "License activated" ]; then
-    dialog --title "Activation" --infobox "Activation successful!" 10 40
-    log "License activation successful. Response: $response" "INFO"
-    sleep 2
-
-    expiry_response=$(curl -s -X POST -H "Content-Type: application/json" -d "{\"license_key\":\"$license\"}" https://chequamegon.chippewa.io/api/verify)
-    expiry=$(echo $expiry_response | jq -r '.remaining_time')
-    
-    if [ -z "$expiry" ]; then
-        log "Error checking license expiry. Response: $expiry_response" "ERROR"
-    else
-        log "License expiry checked. Remaining time: $expiry" "INFO"
-    fi
-else
-    dialog --title "Activation" --infobox "Activation failed! Check logs for details." 10 40
-    log "Activation failed! Response: $response" "ERROR"
-    sleep 2
-    clear
-    exit 1
-fi
-
 
 
 #//////////////////////////////////////////////////////////////////////////////#
